@@ -1,22 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getLicenses } from '../scripts/indexLicenses';
 
-const licenses = [
-  "MIT License",
-  "GNU General Public License v3.0",
-  "Apache License 2.0",
-  "BSD 3-Clause 'New' or 'Revised' License",
-  "BSD 2-Clause 'Simplified' or 'FreeBSD' License",
-  "Creative Commons Zero v1.0 Universal",
-  "Creative Commons Attribution 4.0 International",
-  "Creative Commons Attribution Share Alike 4.0 International",
-  "Eclipse Public License 2.0",
-  "GNU Affero General Public License v3.0",
-  "GNU General Public License v2.0",
-  "GNU Lesser General Public License v2.1",
-  "Mozilla Public License 2.0",
-  "The Unlicense"
-];
+const licenses = getLicenses();
 ---
 
 <Layout>
@@ -43,7 +29,7 @@ const licenses = [
           />
           <ul id="license-list" class="max-h-60 overflow-y-auto">
             {licenses.map(license => (
-              <li class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">{license}</li>
+              <li class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" data-file={license.file}>{license.title}</li>
             ))}
           </ul>
         </div>
