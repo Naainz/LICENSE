@@ -19,7 +19,7 @@ const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt'
   metadata.file = file;
   return metadata;
 });
-const licensesJson = JSON.stringify(licenses);
+const licensesJson = JSON.stringify(licenses).replace(/</g, '\\u003c');
 ---
 
 <Layout>
@@ -62,6 +62,9 @@ const licensesJson = JSON.stringify(licenses);
     </div>
   </div>
 
+  <script type="application/json" id="licenses-data">
+    ${licensesJson}
+  </script>
   <script type="module">
     document.addEventListener("DOMContentLoaded", function() {
       const licensesDataElement = document.getElementById('licenses-data');
@@ -196,12 +199,5 @@ const licensesJson = JSON.stringify(licenses);
         }
       }
     });
-
-    const licensesData = `{{licensesJson}}`;
-    const script = document.createElement('script');
-    script.type = 'application/json';
-    script.id = 'licenses-data';
-    script.textContent = btoa(licensesData);
-    document.body.appendChild(script);
   </script>
 </Layout>
