@@ -1,28 +1,5 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import fs from 'fs';
-import path from 'path';
-
-const licensesDir = path.resolve('./src/db');
-const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt')).map(file => {
-  const content = fs.readFileSync(path.join(licensesDir, file), 'utf-8');
-  const [metadataSection, bodySection] = content.split('---').filter(section => section.trim() !== '');
-  const metadataLines = metadataSection.trim().split('\n');
-  const metadata = {};
-  metadataLines.forEach(line => {
-    const [key, value] = line.split(':').map(s => s.trim());
-    if (key && value) {
-      if (key === 'permissions' || key === 'conditions' || key === 'limitations') {
-        metadata[key] = value.split(',').map(item => item.trim());
-      } else {
-        metadata[key] = value;
-      }
-    }
-  });
-  metadata.body = bodySection.trim();
-  metadata.file = file;
-  return metadata;
-});
 
 const permissions = [
   "commercial-use", "modifications", "distribution", "private-use", "patent-use"
@@ -38,7 +15,7 @@ const conditions = [
 ---
 
 <Layout>
-  <div class="p-4">
+  <div class="p-4 dark:bg-gray-900 dark:text-white">
     <h1 class="text-3xl font-bold mb-4">License Generator</h1>
     <div id="content">
       <p class="mb-6">Select the permissions, conditions, and limitations you want in your license and click "Generate License".</p>
@@ -46,7 +23,7 @@ const conditions = [
       <h2 class="text-2xl font-bold mb-2">Permissions</h2>
       <div id="permissionsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {permissions.map(permission => (
-          <button type="button" id={permission} class="toggle-btn bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
+          <button type="button" id={permission} class="toggle-btn bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors duration-300">
             {permission}
           </button>
         ))}
@@ -55,7 +32,7 @@ const conditions = [
       <h2 class="text-2xl font-bold mb-2">Limitations</h2>
       <div id="limitationsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {limitations.map(limitation => (
-          <button type="button" id={limitation} class="toggle-btn bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
+          <button type="button" id={limitation} class="toggle-btn bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors duration-300">
             {limitation}
           </button>
         ))}
@@ -64,7 +41,7 @@ const conditions = [
       <h2 class="text-2xl font-bold mb-2">Conditions</h2>
       <div id="conditionsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {conditions.map(condition => (
-          <button type="button" id={condition} class="toggle-btn bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
+          <button type="button" id={condition} class="toggle-btn bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors duration-300">
             {condition}
           </button>
         ))}
@@ -127,16 +104,13 @@ const conditions = [
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const licenses = [
-        {licenses.map(license => `{
-          title: "${license.title}",
-          description: "${license.description}",
-          permissions: ${JSON.stringify(license.permissions)},
-          limitations: ${JSON.stringify(license.limitations)},
-          conditions: ${JSON.stringify(license.conditions)},
-          file: "${license.file}"
-        }`).join(',')}
-      ];
+      let licenses = [];
+
+      fetch('/api/licenses.json')
+        .then(response => response.json())
+        .then(data => {
+          licenses = data;
+        });
 
       const toggleButtons = document.querySelectorAll('.toggle-btn');
       toggleButtons.forEach(button => {
