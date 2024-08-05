@@ -1,0 +1,126 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const permissions = [
+  "commercial-use", "modifications", "distribution", "private-use", "patent-use"
+];
+
+const limitations = [
+  "liability", "trademark-use", "warranty"
+];
+
+const conditions = [
+  "include-copyright", "disclose-source", "document-changes", "network-use-disclose", "same-license"
+];
+---
+
+<Layout>
+  <div class="p-4">
+    <h1 class="text-3xl font-bold mb-4">License Generator</h1>
+    <div id="content">
+      <p class="mb-6">Select the permissions, conditions, and limitations you want in your license and click "Generate License".</p>
+      
+      <h2 class="text-2xl font-bold mb-2">Permissions</h2>
+      <div id="permissionsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+        {permissions.map(permission => (
+          <button type="button" id={permission} class="toggle-btn bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
+            {permission}
+          </button>
+        ))}
+      </div>
+      
+      <h2 class="text-2xl font-bold mb-2">Limitations</h2>
+      <div id="limitationsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+        {limitations.map(limitation => (
+          <button type="button" id={limitation} class="toggle-btn bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
+            {limitation}
+          </button>
+        ))}
+      </div>
+
+      <h2 class="text-2xl font-bold mb-2">Conditions</h2>
+      <div id="conditionsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+        {conditions.map(condition => (
+          <button type="button" id={condition} class="toggle-btn bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
+            {condition}
+          </button>
+        ))}
+      </div>
+      
+      <button type="button" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none" id="generate-button">Generate License</button>
+    </div>
+    <div id="loading" class="hidden text-center mt-8">
+      <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
+      <p class="mt-4 text-xl" id="loading-text"></p>
+    </div>
+    <div id="results" class="hidden mt-8">
+      <h2 class="text-2xl font-bold mb-4">Generated License</h2>
+      <pre id="license-output" class="bg-gray-100 p-4 rounded shadow-md"></pre>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggleButtons = document.querySelectorAll('.toggle-btn');
+      toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          button.classList.toggle('bg-orange-500');
+          button.classList.toggle('text-white');
+          button.classList.toggle('border-orange-500');
+          button.classList.toggle('bg-gray-200');
+          button.classList.toggle('text-gray-900');
+          button.classList.toggle('border-gray-300');
+        });
+      });
+
+      document.getElementById('generate-button').addEventListener('click', generateLicense);
+
+      async function generateLicense() {
+        const selectedPermissions = Array.from(document.querySelectorAll('#permissionsForm .toggle-btn.bg-orange-500')).map(el => el.id);
+        const selectedLimitations = Array.from(document.querySelectorAll('#limitationsForm .toggle-btn.bg-orange-500')).map(el => el.id);
+        const selectedConditions = Array.from(document.querySelectorAll('#conditionsForm .toggle-btn.bg-orange-500')).map(el => el.id);
+        
+        document.getElementById('content').classList.add('fade-out');
+        setTimeout(() => {
+          document.getElementById('content').classList.add('hidden');
+          const loading = document.getElementById('loading');
+          loading.classList.remove('hidden');
+          loading.classList.add('fade-in');
+
+          const licenseText = `
+# Generated License
+
+## Permissions
+${selectedPermissions.join(', ') || 'None'}
+
+## Limitations
+${selectedLimitations.join(', ') || 'None'}
+
+## Conditions
+${selectedConditions.join(', ') || 'None'}
+          `.trim();
+
+          document.getElementById('loading').classList.add('hidden');
+          const results = document.getElementById('results');
+          document.getElementById('license-output').textContent = licenseText;
+          results.classList.remove('hidden');
+          results.classList.add('fade-in');
+        }, 500);
+      }
+    });
+  </script>
+
+  <style>
+    .hidden {
+      display: none;
+    }
+    .fade-out {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .fade-in {
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+  </style>
+</Layout>
