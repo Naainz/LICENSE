@@ -128,14 +128,14 @@ const conditions = [
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const licenses = [
-        {licenses.map(license => ({
-          title: license.title,
-          description: license.description,
-          permissions: license.permissions,
-          limitations: license.limitations,
-          conditions: license.conditions,
-          file: license.file
-        }))},
+        {licenses.map(license => `{
+          title: "${license.title}",
+          description: "${license.description}",
+          permissions: ${JSON.stringify(license.permissions)},
+          limitations: ${JSON.stringify(license.limitations)},
+          conditions: ${JSON.stringify(license.conditions)},
+          file: "${license.file}"
+        }`).join(',')}
       ];
 
       const toggleButtons = document.querySelectorAll('.toggle-btn');
