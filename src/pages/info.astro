@@ -29,14 +29,14 @@ const licensesJson = JSON.stringify(licenses);
     </header>
     <div class="relative max-w-xl mx-auto">
       <div class="relative">
-        <input 
-          type="text" 
+        <textarea 
           id="license-input" 
           placeholder="Paste the license text..." 
-          class="w-full px-4 py-2 mb-2 border rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
+          class="w-full h-48 px-4 py-2 mb-2 border rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        ></textarea>
         <ul id="license-suggestions" class="hidden absolute w-full mt-1 bg-white dark:bg-gray-800 border rounded shadow-lg z-10 max-h-60 overflow-y-auto"></ul>
       </div>
+      <p id="unrecognized-message" class="text-red-500 hidden">Sorry! I don't recognize this license.</p>
     </div>
     <div id="license-content" class="hidden mt-8">
       <div class="flex flex-col lg:flex-row lg:justify-between lg:space-x-4">
@@ -64,59 +64,56 @@ const licensesJson = JSON.stringify(licenses);
 
   <script type="module">
     document.addEventListener("DOMContentLoaded", function() {
-      const licenses = JSON.parse(`{{licensesJson}}`);
+      const licensesDataElement = document.getElementById('licenses-data');
+      const licenses = JSON.parse(licensesDataElement.textContent);
       const input = document.getElementById('license-input');
       const suggestions = document.getElementById('license-suggestions');
+      const unrecognizedMessage = document.getElementById('unrecognized-message');
 
       input.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim().substring(0, 100);
-        suggestions.innerHTML = '';
+        const query = this.value.trim();
         if (query.length === 0) {
           suggestions.classList.add('hidden');
+          unrecognizedMessage.classList.add('hidden');
+          document.getElementById('license-content').classList.add('hidden');
           return;
         }
 
-        const matches = licenses.filter(license => 
-          license.body.toLowerCase().startsWith(query)
-        );
-
-        if (matches.length === 0) {
-          suggestions.classList.add('hidden');
-          return;
+        const match = findLicenseMatch(query);
+        if (match) {
+          unrecognizedMessage.classList.add('hidden');
+          showLicenseDetails(match.file);
+        } else {
+          unrecognizedMessage.classList.remove('hidden');
+          document.getElementById('license-content').classList.add('hidden');
         }
-
-        matches.forEach(match => {
-          const li = document.createElement('li');
-          li.className = 'px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer';
-          li.textContent = match.title;
-          li.addEventListener('click', () => selectLicense(match.file));
-          suggestions.appendChild(li);
-        });
-
-        suggestions.classList.remove('hidden');
       });
 
-      window.selectLicense = selectLicense;
+      function findLicenseMatch(input) {
+        for (let i = 0; i < 100; i++) {  // Try up to 100 times to find a match
+          const start = Math.floor(Math.random() * (input.length - 20));
+          const substr = input.substring(start, start + 20);
 
-      function selectLicense(file) {
-        // Hide the suggestions
-        suggestions.classList.add('hidden');
+          if (substr.includes('[') || substr.includes(']')) continue;  // Skip if substring contains square brackets
 
-        // Fetch the license content
+          const match = licenses.find(license => license.body.includes(substr));
+          if (match) return match;
+        }
+        return null;
+      }
+
+      function showLicenseDetails(file) {
         fetch(`/src/db/${file}`)
           .then(response => response.text())
           .then(content => {
-            // Parse the license metadata and body
             const { metadata, body } = parseLicenseContent(content);
 
-            // Update the license metadata
             document.getElementById('license-title').textContent = metadata.title;
             document.getElementById('license-description').textContent = metadata.description;
             updateList('permissions-list', metadata.permissions, 'fa-check');
             updateList('limitations-list', metadata.limitations, 'fa-times');
             updateConditionsList('conditions-list', metadata.conditions);
 
-            // Show the license content section
             document.getElementById('license-content').classList.remove('hidden');
           });
       }
@@ -199,5 +196,12 @@ const licensesJson = JSON.stringify(licenses);
         }
       }
     });
+
+    const licensesData = `{{licensesJson}}`;
+    const script = document.createElement('script');
+    script.type = 'application/json';
+    script.id = 'licenses-data';
+    script.textContent = btoa(licensesData);
+    document.body.appendChild(script);
   </script>
 </Layout>
