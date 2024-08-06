@@ -61,15 +61,7 @@ export const GET: APIRoute = async ({ request }) => {
 export const POST: APIRoute = async ({ request }) => {
   const { name, permissions, limitations, text } = await request.json();
 
-  console.log('Received criteria:');
-  console.log('Name:', name);
-  console.log('Permissions:', permissions);
-  console.log('Limitations:', limitations);
-  console.log('Text:', text);
-
   const licenses = loadLicenses();
-
-  console.log('Total licenses found:', licenses.length);
 
   if (text) {
     const normalizedText = text.replace(/[^\w\s]/g, '').toLowerCase();
@@ -99,19 +91,8 @@ export const POST: APIRoute = async ({ request }) => {
     const matchedLicenses = licenses.filter(license => {
       const matchPermissions = arraysEqual(permissions, license.permissions || []);
       const matchLimitations = arraysEqual(limitations, license.limitations || []);
-
-      const matches = matchPermissions && matchLimitations;
-
-      if (!matches) {
-        console.log(`License "${license.title}" did not match:`);
-        console.log('Permissions:', license.permissions);
-        console.log('Limitations:', license.limitations);
-      }
-
-      return matches;
+      return matchPermissions && matchLimitations;
     });
-
-    console.log('Matched licenses:', matchedLicenses.length);
 
     const currentYear = new Date().getFullYear();
     const processedLicenses = matchedLicenses.map(license => {
