@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import fs from 'fs';
 import path from 'path';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
   const licensesDir = path.resolve('./src/db');
   const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt')).map(file => {
     const content = fs.readFileSync(path.join(licensesDir, file), 'utf-8');
@@ -24,7 +24,9 @@ export const GET: APIRoute = async () => {
     return metadata;
   });
 
-  return {
-    body: JSON.stringify(licenses),
-  };
+  return new Response(JSON.stringify(licenses), {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 };
