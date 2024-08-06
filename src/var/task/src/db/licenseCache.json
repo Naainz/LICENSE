@@ -1,0 +1,162 @@
+[
+  {
+    "file": "0bsd.txt",
+    "title": "BSD Zero Clause License"
+  },
+  {
+    "file": "afl-3.0.txt",
+    "title": "Academic Free License v3.0"
+  },
+  {
+    "file": "agpl-3.0.txt",
+    "title": "GNU Affero General Public License v3.0"
+  },
+  {
+    "file": "apache-2.0.txt",
+    "title": "Apache License 2.0"
+  },
+  {
+    "file": "artistic-2.0.txt",
+    "title": "Artistic License 2.0"
+  },
+  {
+    "file": "bsd-2-clause.txt",
+    "title": "BSD 2-Clause \"Simplified\" License"
+  },
+  {
+    "file": "bsd-3-clause-clear.txt",
+    "title": "BSD 3-Clause Clear License"
+  },
+  {
+    "file": "bsd-3-clause.txt",
+    "title": "BSD 3-Clause \"New\" or \"Revised\" License"
+  },
+  {
+    "file": "bsd-4-clause.txt",
+    "title": "BSD 4-Clause \"Original\" or \"Old\" License"
+  },
+  {
+    "file": "bsl-1.0.txt",
+    "title": "Boost Software License 1.0"
+  },
+  {
+    "file": "cc-by-4.0.txt",
+    "title": "Creative Commons Attribution 4.0 International"
+  },
+  {
+    "file": "cc-by-sa-4.0.txt",
+    "title": "Creative Commons Attribution Share Alike 4.0 International"
+  },
+  {
+    "file": "cc0-1.0.txt",
+    "title": "Creative Commons Zero v1.0 Universal"
+  },
+  {
+    "file": "cecill-2.1.txt",
+    "title": "CeCILL Free Software License Agreement v2.1"
+  },
+  {
+    "file": "ecl-2.0.txt",
+    "title": "Educational Community License v2.0"
+  },
+  {
+    "file": "epl-1.0.txt",
+    "title": "Eclipse Public License 1.0"
+  },
+  {
+    "file": "epl-2.0.txt",
+    "title": "Eclipse Public License 2.0"
+  },
+  {
+    "file": "eupl-1.1.txt",
+    "title": "European Union Public License 1.1"
+  },
+  {
+    "file": "eupl-1.2.txt",
+    "title": "European Union Public License 1.2"
+  },
+  {
+    "file": "gpl-2.0.txt",
+    "title": "GNU General Public License v2.0"
+  },
+  {
+    "file": "gpl-3.0.txt",
+    "title": "GNU General Public License v3.0"
+  },
+  {
+    "file": "isc.txt",
+    "title": "ISC License"
+  },
+  {
+    "file": "lgpl-2.1.txt",
+    "title": "GNU Lesser General Public License v2.1"
+  },
+  {
+    "file": "lgpl-3.0.txt",
+    "title": "GNU Lesser General Public License v3.0"
+  },
+  {
+    "file": "lppl-1.3c.txt",
+    "title": "LaTeX Project Public License v1.3c"
+  },
+  {
+    "file": "mit-0.txt",
+    "title": "MIT No Attribution"
+  },
+  {
+    "file": "mit.txt",
+    "title": "MIT License"
+  },
+  {
+    "file": "mpl-2.0.txt",
+    "title": "Mozilla Public License 2.0"
+  },
+  {
+    "file": "ms-pl.txt",
+    "title": "Microsoft Public License"
+  },
+  {
+    "file": "ms-rl.txt",
+    "title": "Microsoft Reciprocal License"
+  },
+  {
+    "file": "ncsa.txt",
+    "title": "University of Illinois/NCSA Open Source License"
+  },
+  {
+    "file": "odbl-1.0.txt",
+    "title": "ODC Open Database License v1.0"
+  },
+  {
+    "file": "ofl-1.1.txt",
+    "title": "SIL Open Font License 1.1"
+  },
+  {
+    "file": "osl-3.0.txt",
+    "title": "Open Software License 3.0"
+  },
+  {
+    "file": "postgresql.txt",
+    "title": "PostgreSQL License"
+  },
+  {
+    "file": "unlicense.txt",
+    "title": "The Unlicense"
+  },
+  {
+    "file": "upl-1.0.txt",
+    "title": "Universal Permissive License v1.0"
+  },
+  {
+    "file": "vim.txt",
+    "title": "Vim License"
+  },
+  {
+    "file": "wtfpl.txt",
+    "title": "\"Do What The F*ck You Want To Public License\""
+  },
+  {
+    "file": "zlib.txt",
+    "title": "zlib License"
+  }
+]
