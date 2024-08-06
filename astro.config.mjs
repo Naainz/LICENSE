@@ -2,14 +2,14 @@
 import { defineConfig } from 'astro/config';
 import dotenv from 'dotenv';
 import tailwind from "@astrojs/tailwind";
-import netlify from "@astrojs/netlify";
+import vercel from "@astrojs/vercel/serverless";
 dotenv.config();
 
 
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-  adapter: netlify(),
+  adapters: [vercel()],
   vite: {
     css: {
       preprocessorOptions: {
