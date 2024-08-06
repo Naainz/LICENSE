@@ -48,6 +48,21 @@ const loadLicenses = () => {
   });
 };
 
+const calculateMatchPercentage = (text1: string, text2: string) => {
+  const words1 = text1.split(/\s+/);
+  const words2 = text2.split(/\s+/);
+  const totalWords = Math.max(words1.length, words2.length);
+  let matchCount = 0;
+  
+  words1.forEach(word => {
+    if (words2.includes(word)) {
+      matchCount++;
+    }
+  });
+
+  return (matchCount / totalWords) * 100;
+};
+
 export const GET: APIRoute = async ({ request }) => {
   const licenses = loadLicenses();
 
@@ -65,17 +80,19 @@ export const POST: APIRoute = async ({ request }) => {
 
   if (text) {
     const normalizedText = text.replace(/[^\w\s]/g, '').toLowerCase();
-    const matchedLicense = licenses.find(license => {
+    const matchedLicenses = licenses.map(license => {
       const normalizedLicenseBody = license.body.replace(/[^\w\s]/g, '').toLowerCase();
-      return normalizedLicenseBody.includes(normalizedText);
-    });
+      const matchPercentage = calculateMatchPercentage(normalizedText, normalizedLicenseBody);
+      return { ...license, matchPercentage };
+    }).filter(license => license.matchPercentage > 50);
 
-    if (matchedLicense) {
+    if (matchedLicenses.length > 0) {
+      const bestMatch = matchedLicenses.reduce((max, license) => max.matchPercentage > license.matchPercentage ? max : license);
       const currentYear = new Date().getFullYear();
-      const processedBody = matchedLicense.body
+      const processedBody = bestMatch.body
         .replace(/\[fullname\]/g, name)
         .replace(/\[year\]/g, currentYear);
-      return new Response(JSON.stringify({ matched: true, license: { ...matchedLicense, body: processedBody } }), {
+      return new Response(JSON.stringify({ matched: true, license: { ...bestMatch, body: processedBody } }), {
         headers: {
           'Content-Type': 'application/json',
         },

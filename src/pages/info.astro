@@ -23,6 +23,7 @@ import Layout from '../layouts/Layout.astro';
         <div class="lg:w-1/2 mt-4 lg:mt-0">
           <h2 id="license-title" class="text-2xl font-bold mb-2"></h2>
           <p id="license-description" class="mb-4"></p>
+          <p id="match-percentage" class="italic text-gray-600 mb-4"></p>
           <div id="license-details" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div>
               <h3 class="font-semibold">Permissions</h3>
@@ -78,6 +79,7 @@ import Layout from '../layouts/Layout.astro';
       function showLicenseDetails(license) {
         document.getElementById('license-title').textContent = license.title;
         document.getElementById('license-description').textContent = license.description;
+        document.getElementById('match-percentage').textContent = `Match: ${license.matchPercentage.toFixed(2)}%`;
         updateList('permissions-list', license.permissions, 'fa-check');
         updateList('limitations-list', license.limitations, 'fa-times');
         updateConditionsList('conditions-list', license.conditions);
