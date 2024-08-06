@@ -28,7 +28,7 @@ const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt'
     </header>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {licenses.map(license => (
-        <a href={`/licenses/${license.file.replace('.txt', '')}`} class="block p-4 border rounded bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <a href={`/license/${license.file.replace('.txt', '')}`} class="block p-4 border rounded bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
           <h2 class="text-xl font-bold">{license.title}</h2>
         </a>
       ))}
