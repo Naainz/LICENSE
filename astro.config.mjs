@@ -9,7 +9,7 @@ dotenv.config();
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-  adapters: [vercel()],
+  adapter: vercelServerless(),
   vite: {
     css: {
       preprocessorOptions: {
