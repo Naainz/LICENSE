@@ -1,0 +1,133 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <div class="container mx-auto px-4 py-8">
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-2">License Information</h1>
+    </header>
+    <div class="relative max-w-xl mx-auto">
+      <div class="relative">
+        <textarea 
+          id="license-input" 
+          placeholder="Paste the license text..." 
+          class="w-full h-48 px-4 py-2 mb-2 border rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        ></textarea>
+        <ul id="license-suggestions" class="hidden absolute w-full mt-1 bg-white dark:bg-gray-800 border rounded shadow-lg z-10 max-h-60 overflow-y-auto"></ul>
+      </div>
+      <p id="unrecognized-message" class="text-red-500 hidden">Sorry! I don't recognize this license.</p>
+    </div>
+    <div id="license-content" class="hidden mt-8">
+      <div class="flex flex-col lg:flex-row lg:justify-between lg:space-x-4">
+        <div class="lg:w-1/2 mt-4 lg:mt-0">
+          <h2 id="license-title" class="text-2xl font-bold mb-2"></h2>
+          <p id="license-description" class="mb-4"></p>
+          <p id="match-percentage" class="italic text-gray-600 mb-4"></p>
+          <div id="license-details" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div>
+              <h3 class="font-semibold">Permissions</h3>
+              <ul id="permissions-list" class="list-disc list-inside"></ul>
+            </div>
+            <div>
+              <h3 class="font-semibold">Limitations</h3>
+              <ul id="limitations-list" class="list-disc list-inside"></ul>
+            </div>
+            <div>
+              <h3 class="font-semibold">Conditions</h3>
+              <ul id="conditions-list" class="list-disc list-inside"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    document.addEventListener("DOMContentLoaded", function() {
+      const input = document.getElementById('license-input');
+      const unrecognizedMessage = document.getElementById('unrecognized-message');
+      const licenseContent = document.getElementById('license-content');
+
+      input.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length === 0) {
+          unrecognizedMessage.classList.add('hidden');
+          licenseContent.classList.add('hidden');
+          return;
+        }
+
+        fetch('/api/licenses.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: query }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.matched) {
+            unrecognizedMessage.classList.add('hidden');
+            showLicenseDetails(data.license);
+          } else {
+            unrecognizedMessage.classList.remove('hidden');
+            licenseContent.classList.add('hidden');
+          }
+        });
+      });
+
+      function showLicenseDetails(license) {
+        document.getElementById('license-title').textContent = license.title;
+        document.getElementById('license-description').textContent = license.description;
+        document.getElementById('match-percentage').textContent = `Match: ${license.matchPercentage.toFixed(2)}%`;
+        updateList('permissions-list', license.permissions, 'fa-check');
+        updateList('limitations-list', license.limitations, 'fa-times');
+        updateConditionsList('conditions-list', license.conditions);
+
+        licenseContent.classList.remove('hidden');
+      }
+
+      function updateList(elementId, items, icon) {
+        const listElement = document.getElementById(elementId);
+        listElement.innerHTML = '';
+        if (items && items.length > 0) {
+          items.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center';
+            li.innerHTML = `${item} <i class="fas ${icon}"></i>`;
+            listElement.appendChild(li);
+          });
+        } else {
+          const li = document.createElement('li');
+          li.textContent = 'None';
+          listElement.appendChild(li);
+        }
+      }
+
+      function updateConditionsList(elementId, items) {
+        const listElement = document.getElementById(elementId);
+        listElement.innerHTML = '';
+        const icons = {
+          'include-copyright': 'fa-copyright',
+          'disclose-source': 'fa-code-branch',
+          'document-changes': 'fa-file-alt',
+          'network-use-disclose': 'fa-wifi',
+          'same-license': 'fa-dollar-sign'
+        };
+        if (items && items.length > 0) {
+          items.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center';
+            const icon = icons[item] || '';
+            li.innerHTML = `${item} ${icon ? `<i class="fas ${icon}"></i>` : ''}`;
+            listElement.appendChild(li);
+          });
+        } else {
+          const li = document.createElement('li');
+          li.textContent = 'None';
+          listElement.appendChild(li);
+        }
+      }
+    });
+  </script>
+</Layout>

@@ -1,0 +1,206 @@
+---
+import Layout from '../layouts/Layout.astro';
+import fs from 'fs';
+import path from 'path';
+
+const licensesDir = path.resolve('./src/db');
+const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt')).map(file => {
+  const content = fs.readFileSync(path.join(licensesDir, file), 'utf-8');
+  const [metadataSection] = content.split('---').filter(section => section.trim() !== '');
+  const metadataLines = metadataSection.trim().split('\n');
+  const metadata = {};
+  metadataLines.forEach(line => {
+    const [key, value] = line.split(':').map(s => s.trim());
+    if (key && value) {
+      metadata[key] = value;
+    }
+  });
+  metadata.file = file;
+  return metadata;
+});
+---
+
+<Layout>
+  <div class="container mx-auto px-4 py-8">
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-2">License Information</h1>
+      <p class="text-lg">It is important to use a license in your project for many reasons!</p>
+    </header>
+    <div class="relative max-w-xl mx-auto">
+      <div class="relative">
+        <button 
+          id="dropdown-toggle" 
+          class="w-full px-4 py-2 mb-2 border rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 flex justify-between items-center"
+        >
+          <span>Select a license</span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div id="dropdown" class="hidden absolute w-full mt-1 bg-white dark:bg-gray-800 border rounded shadow-lg z-10">
+          <input 
+            type="text" 
+            id="search-input"
+            placeholder="Search for a license..." 
+            class="w-full px-4 py-2 border-b focus:outline-none"
+          />
+          <ul id="license-list" class="max-h-60 overflow-y-auto">
+            {licenses.map(license => (
+              <li class="px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" data-file={license.file} onclick={`selectLicense('${license.file}')`}>{license.title}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div id="license-content" class="hidden mt-8">
+      <div class="flex flex-col lg:flex-row lg:justify-between lg:space-x-4">
+        <div class="lg:w-1/2 bg-gray-100 dark:bg-gray-900 p-4 rounded border border-gray-300 dark:border-gray-700 overflow-auto max-h-80">
+          <pre class="whitespace-pre-wrap"><code id="license-text"></code></pre>
+        </div>
+        <div class="lg:w-1/2 mt-4 lg:mt-0">
+          <h2 id="license-title" class="text-2xl font-bold mb-2"></h2>
+          <p id="license-description" class="mb-4"></p>
+          <div id="license-details" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div>
+              <h3 class="font-semibold">Permissions</h3>
+              <ul id="permissions-list" class="list-disc list-inside"></ul>
+            </div>
+            <div>
+              <h3 class="font-semibold">Limitations</h3>
+              <ul id="limitations-list" class="list-disc list-inside"></ul>
+            </div>
+            <div>
+              <h3 class="font-semibold">Conditions</h3>
+              <ul id="conditions-list" class="list-disc list-inside"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById('dropdown-toggle').addEventListener('click', toggleDropdown);
+      document.getElementById('search-input').addEventListener('input', filterLicenses);
+      
+      window.selectLicense = selectLicense;  // Make selectLicense available globally
+    });
+
+    function toggleDropdown() {
+      const dropdown = document.getElementById('dropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function filterLicenses(event) {
+      const filter = event.target.value.toLowerCase();
+      const ul = document.getElementById("license-list");
+      const li = ul.getElementsByTagName("li");
+      for (let i = 0; i < li.length; i++) {
+        const text = li[i].textContent || li[i].innerText;
+        li[i].style.display = text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
+      }
+    }
+
+    async function selectLicense(file) {
+      // Collapse the dropdown
+      toggleDropdown();
+
+      // Fetch the license content
+      const response = await fetch(`/src/db/${file}`);
+      const content = await response.text();
+
+      // Parse the license metadata and body
+      const { metadata, body } = parseLicenseContent(content);
+
+      // Update the license text
+      document.getElementById('license-text').textContent = body;
+
+      // Update the license metadata
+      document.getElementById('license-title').textContent = metadata.title;
+      document.getElementById('license-description').textContent = metadata.description;
+      updateList('permissions-list', metadata.permissions, 'fa-check');
+      updateList('limitations-list', metadata.limitations, 'fa-times');
+      updateConditionsList('conditions-list', metadata.conditions);
+
+      // Show the license content section
+      document.getElementById('license-content').classList.remove('hidden');
+    }
+
+    function parseLicenseContent(content) {
+      const sections = content.split('---').filter(section => section.trim() !== '');
+      const metadataSection = sections[0].trim();
+      const body = sections[1].trim();
+
+      const lines = metadataSection.split('\n');
+      const metadata = {};
+      for (const line of lines) {
+        if (line.startsWith('title:')) {
+          metadata.title = line.replace('title: ', '').trim();
+        } else if (line.startsWith('description:')) {
+          metadata.description = line.replace('description: ', '').trim();
+        } else if (line.startsWith('permissions:')) {
+          metadata.permissions = parseList(lines, lines.indexOf(line));
+        } else if (line.startsWith('conditions:')) {
+          metadata.conditions = parseList(lines, lines.indexOf(line));
+        } else if (line.startsWith('limitations:')) {
+          metadata.limitations = parseList(lines, lines.indexOf(line));
+        }
+      }
+      return { metadata, body };
+    }
+
+    function parseList(lines, startIndex) {
+      const list = [];
+      for (let i = startIndex + 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.startsWith('- ')) {
+          list.push(line.replace('- ', '').trim());
+        } else {
+          break;
+        }
+      }
+      return list;
+    }
+
+    function updateList(elementId, items, icon) {
+      const listElement = document.getElementById(elementId);
+      listElement.innerHTML = '';
+      if (items && items.length > 0) {
+        items.forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'flex justify-between items-center';
+          li.innerHTML = `${item} <i class="fas ${icon}"></i>`;
+          listElement.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = 'None';
+        listElement.appendChild(li);
+      }
+    }
+
+    function updateConditionsList(elementId, items) {
+      const listElement = document.getElementById(elementId);
+      listElement.innerHTML = '';
+      const icons = {
+        'include-copyright': 'fa-copyright',
+        'disclose-source': 'fa-code-branch',
+        'document-changes': 'fa-file-alt',
+        'network-use-disclose': 'fa-wifi',
+        'same-license': 'fa-dollar-sign'
+      };
+      if (items && items.length > 0) {
+        items.forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'flex justify-between items-center';
+          const icon = icons[item] || '';
+          li.innerHTML = `${item} ${icon ? `<i class="fas ${icon}"></i>` : ''}`;
+          listElement.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.textContent = 'None';
+        listElement.appendChild(li);
+      }
+    }
+  </script>
+</Layout>
