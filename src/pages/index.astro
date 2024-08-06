@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import fs from 'fs';
-import path from 'path';
+import path from './src/db';
 
 const licensesDir = path.resolve('./src/db');
 const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt')).map(file => {
