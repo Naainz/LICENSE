@@ -218,10 +218,10 @@ const limitations = [
         const metadataSection = sections[0].trim();
         let body = sections[1].trim();
 
-        // Replace {name} and {year}
+        // Replace [fullname] and [year]
         const currentYear = new Date().getFullYear();
-        body = body.replace(/{name}/g, name);
-        body = body.replace(/{year}/g, currentYear);
+        body = body.replace(/\[fullname\]/g, name);
+        body = body.replace(/\[year\]/g, currentYear);
 
         const lines = metadataSection.split('\n');
         const metadata = {};

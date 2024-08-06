@@ -102,7 +102,6 @@ export const POST: APIRoute = async ({ request }) => {
 
   console.log('Matched licenses:', matchedLicenses.length);
 
-  // Replace {name} and {year} dynamically in the matched licenses
   const currentYear = new Date().getFullYear();
   const processedLicenses = matchedLicenses.map(license => {
     const processedBody = license.body
