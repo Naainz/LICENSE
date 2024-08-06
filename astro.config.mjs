@@ -1,7 +1,7 @@
 // astro.config.mjs
 import { defineConfig } from 'astro/config';
 import dotenv from 'dotenv';
-import vercel from '@astrojs/vercel/serverless';
+import vercel from '@astrojs/vercel/static';
 import tailwind from "@astrojs/tailwind";
 dotenv.config();
 
