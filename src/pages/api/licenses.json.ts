@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import fs from 'fs';
-import path from './src/db';
+import path from 'path';
 
 const parseList = (lines: string[], startIndex: number) => {
   const list = [];

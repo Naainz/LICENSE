@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import fs from 'fs';
-import path from './src/db';
+import path from 'path';
 
 const licenseName = Astro.params.license;
 const licensesDir = path.resolve('./src/db');
@@ -66,7 +66,7 @@ const { metadata, body } = parseLicenseContent(licenseContent);
   <div class="container mx-auto px-4 py-8">
     <header class="text-center mb-8">
       <h1 class="text-4xl font-bold mb-2">{metadata.title}</h1>
-      <p class="text-lg">{metadata.description}</p>
+      <p class="text-lg italic">{metadata.description}</p>
     </header>
     <div class="relative max-w-xl mx-auto">
       <div id="license-content" class="mt-8">
@@ -76,12 +76,12 @@ const { metadata, body } = parseLicenseContent(licenseContent);
           </div>
           <div class="lg:w-1/2 mt-4 lg:mt-0">
             <h2 class="text-2xl font-bold mb-2">License Details</h2>
-            <div id="license-details" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div id="license-details" class="grid grid-cols-1 lg:grid-cols-1 gap-8">
               <div>
                 <h3 class="font-semibold">Permissions</h3>
                 <ul id="permissions-list" class="list-disc list-inside">
                   {metadata.permissions.length > 0 ? metadata.permissions.map(permission => (
-                    <li>{permission}</li>
+                    <li class="flex justify-between items-center">{permission} <i class="fas fa-check"></i></li>
                   )) : <li>None</li>}
                 </ul>
               </div>
@@ -89,7 +89,7 @@ const { metadata, body } = parseLicenseContent(licenseContent);
                 <h3 class="font-semibold">Limitations</h3>
                 <ul id="limitations-list" class="list-disc list-inside">
                   {metadata.limitations.length > 0 ? metadata.limitations.map(limit => (
-                    <li>{limit}</li>
+                    <li class="flex justify-between items-center">{limit} <i class="fas fa-times"></i></li>
                   )) : <li>None</li>}
                 </ul>
               </div>
@@ -97,7 +97,14 @@ const { metadata, body } = parseLicenseContent(licenseContent);
                 <h3 class="font-semibold">Conditions</h3>
                 <ul id="conditions-list" class="list-disc list-inside">
                   {metadata.conditions.length > 0 ? metadata.conditions.map(condition => (
-                    <li>{condition}</li>
+                    <li class="flex justify-between items-center">
+                      {condition} 
+                      {condition === 'include-copyright' && <i class="fas fa-copyright"></i>}
+                      {condition === 'disclose-source' && <i class="fas fa-code-branch"></i>}
+                      {condition === 'document-changes' && <i class="fas fa-file-alt"></i>}
+                      {condition === 'network-use-disclose' && <i class="fas fa-wifi"></i>}
+                      {condition === 'same-license' && <i class="fas fa-dollar-sign"></i>}
+                    </li>
                   )) : <li>None</li>}
                 </ul>
               </div>
