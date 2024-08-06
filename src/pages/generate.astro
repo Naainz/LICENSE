@@ -126,8 +126,8 @@ const limitations = [
         const name = document.getElementById('name').value.trim();
         const selectedPermissions = Array.from(document.querySelectorAll('#permissionsForm .toggle-btn.bg-orange-500')).map(el => el.id);
         const selectedLimitations = Array.from(document.querySelectorAll('#limitationsForm .toggle-btn.bg-orange-500')).map(el => el.id);
-        
-        document.getElementById('content').classList.add('fade-out');
+
+        document.getElementById('content').remove();  // Remove content completely
         const loading = document.getElementById('loading');
         loading.classList.remove('hidden');
         loading.classList.add('fade-in');
