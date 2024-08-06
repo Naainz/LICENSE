@@ -2,29 +2,6 @@ import type { APIRoute } from 'astro';
 import fs from 'fs';
 import path from 'path';
 
-const parseList = (lines: string[], startIndex: number) => {
-  const list = [];
-  for (let i = startIndex + 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line.startsWith('- ')) {
-      list.push(line.replace('- ', '').trim());
-    } else {
-      break;
-    }
-  }
-  return list;
-};
-
-const arraysEqual = (arr1: string[], arr2: string[]) => {
-  if (arr1.length !== arr2.length) return false;
-  arr1.sort();
-  arr2.sort();
-  for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) return false;
-  }
-  return true;
-};
-
 export const GET: APIRoute = async ({ request }) => {
   const licensesDir = path.resolve('./src/db');
   const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt')).map(file => {
@@ -32,11 +9,11 @@ export const GET: APIRoute = async ({ request }) => {
     const [metadataSection, bodySection] = content.split('---').filter(section => section.trim() !== '');
     const metadataLines = metadataSection.trim().split('\n');
     const metadata: { [key: string]: any } = {};
-    metadataLines.forEach((line, index) => {
+    metadataLines.forEach(line => {
       const [key, value] = line.split(':').map(s => s.trim());
-      if (key) {
+      if (key && value) {
         if (key === 'permissions' || key === 'conditions' || key === 'limitations') {
-          metadata[key] = value ? value.split(',').map(item => item.trim()) : parseList(metadataLines, index);
+          metadata[key] = value.split(',').map(item => item.trim());
         } else {
           metadata[key] = value;
         }
@@ -55,12 +32,7 @@ export const GET: APIRoute = async ({ request }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const { name, permissions, limitations } = await request.json();
-
-  console.log('Received criteria:');
-  console.log('Name:', name);
-  console.log('Permissions:', permissions);
-  console.log('Limitations:', limitations);
+  const { text } = await request.json();
 
   const licensesDir = path.resolve('./src/db');
   const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt')).map(file => {
@@ -68,11 +40,11 @@ export const POST: APIRoute = async ({ request }) => {
     const [metadataSection, bodySection] = content.split('---').filter(section => section.trim() !== '');
     const metadataLines = metadataSection.trim().split('\n');
     const metadata: { [key: string]: any } = {};
-    metadataLines.forEach((line, index) => {
+    metadataLines.forEach(line => {
       const [key, value] = line.split(':').map(s => s.trim());
-      if (key) {
+      if (key && value) {
         if (key === 'permissions' || key === 'conditions' || key === 'limitations') {
-          metadata[key] = value ? value.split(',').map(item => item.trim()) : parseList(metadataLines, index);
+          metadata[key] = value.split(',').map(item => item.trim());
         } else {
           metadata[key] = value;
         }
@@ -83,36 +55,23 @@ export const POST: APIRoute = async ({ request }) => {
     return metadata;
   });
 
-  console.log('Total licenses found:', licenses.length);
-
-  const matchedLicenses = licenses.filter(license => {
-    const matchPermissions = arraysEqual(permissions, license.permissions || []);
-    const matchLimitations = arraysEqual(limitations, license.limitations || []);
-
-    const matches = matchPermissions && matchLimitations;
-
-    if (!matches) {
-      console.log(`License "${license.title}" did not match:`);
-      console.log('Permissions:', license.permissions);
-      console.log('Limitations:', license.limitations);
-    }
-
-    return matches;
+  const normalizedText = text.replace(/[^\w\s]/g, '').toLowerCase();
+  const matchedLicense = licenses.find(license => {
+    const normalizedLicenseBody = license.body.replace(/[^\w\s]/g, '').toLowerCase();
+    return normalizedLicenseBody.includes(normalizedText);
   });
 
-  console.log('Matched licenses:', matchedLicenses.length);
-
-  const currentYear = new Date().getFullYear();
-  const processedLicenses = matchedLicenses.map(license => {
-    const processedBody = license.body
-      .replace(/[fullname]/g, name)
-      .replace(/[year]/g, currentYear);
-    return { ...license, body: processedBody };
-  });
-
-  return new Response(JSON.stringify(processedLicenses), {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  if (matchedLicense) {
+    return new Response(JSON.stringify({ matched: true, license: matchedLicense }), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } else {
+    return new Response(JSON.stringify({ matched: false }), {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
 };
