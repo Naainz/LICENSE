@@ -8,18 +8,19 @@ const permissions = [
 const limitations = [
   "liability", "trademark-use", "warranty"
 ];
-
-const conditions = [
-  "include-copyright", "disclose-source", "document-changes", "network-use-disclose", "same-license"
-];
 ---
 
 <Layout>
   <div class="p-4 dark:bg-gray-900 dark:text-white">
     <h1 class="text-3xl font-bold mb-4">License Generator</h1>
     <div id="content">
-      <p class="mb-6">Select the permissions, conditions, and limitations you want in your license and click "Generate License".</p>
-      
+      <p class="mb-6">Select the permissions and limitations you want in your license and click "Generate License".</p>
+
+      <div class="mb-6">
+        <label for="name" class="block text-lg font-semibold mb-2">Enter your name:</label>
+        <input type="text" id="name" class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white" placeholder="Your name" />
+      </div>
+
       <h2 class="text-2xl font-bold mb-2">Permissions</h2>
       <div id="permissionsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {permissions.map(permission => (
@@ -28,7 +29,7 @@ const conditions = [
           </button>
         ))}
       </div>
-      
+
       <h2 class="text-2xl font-bold mb-2">Limitations</h2>
       <div id="limitationsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         {limitations.map(limitation => (
@@ -38,15 +39,6 @@ const conditions = [
         ))}
       </div>
 
-      <h2 class="text-2xl font-bold mb-2">Conditions</h2>
-      <div id="conditionsForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-        {conditions.map(condition => (
-          <button type="button" id={condition} class="toggle-btn bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-800 transition-colors duration-300">
-            {condition}
-          </button>
-        ))}
-      </div>
-      
       <button type="button" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none" id="generate-button">Generate License</button>
     </div>
     <div id="loading" class="hidden text-center mt-8">
@@ -131,59 +123,54 @@ const conditions = [
       window.selectLicense = selectLicense;  // Make selectLicense available globally
 
       async function generateLicense() {
+        const name = document.getElementById('name').value.trim();
         const selectedPermissions = Array.from(document.querySelectorAll('#permissionsForm .toggle-btn.bg-orange-500')).map(el => el.id);
         const selectedLimitations = Array.from(document.querySelectorAll('#limitationsForm .toggle-btn.bg-orange-500')).map(el => el.id);
-        const selectedConditions = Array.from(document.querySelectorAll('#conditionsForm .toggle-btn.bg-orange-500')).map(el => el.id);
         
         document.getElementById('content').classList.add('fade-out');
-        setTimeout(() => {
-          document.getElementById('content').classList.add('hidden');
-          const loading = document.getElementById('loading');
-          loading.classList.remove('hidden');
-          loading.classList.add('fade-in');
+        const loading = document.getElementById('loading');
+        loading.classList.remove('hidden');
+        loading.classList.add('fade-in');
 
-          document.getElementById('loading-text').innerText = `Get ready! You selected: 
-          Permissions: ${selectedPermissions.join(', ') || 'None'}
-          Limitations: ${selectedLimitations.join(', ') || 'None'}
-          Conditions: ${selectedConditions.join(', ') || 'None'}`;
+        document.getElementById('loading-text').innerText = `Get ready! You selected: 
+        Permissions: ${selectedPermissions.join(', ') || 'None'}
+        Limitations: ${selectedLimitations.join(', ') || 'None'}`;
 
-          // Send the selected criteria to the backend
-          fetch('/api/licenses.json', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              permissions: selectedPermissions,
-              limitations: selectedLimitations,
-              conditions: selectedConditions,
-            }),
-          })
-          .then(response => response.json())
-          .then(matchedLicenses => {
-            const licenseList = document.getElementById('license-list');
-            licenseList.innerHTML = '';
-            if (matchedLicenses.length === 0) {
-              const li = document.createElement('li');
-              li.className = 'px-4 py-2';
-              li.textContent = 'No matching licenses found';
-              licenseList.appendChild(li);
-            } else {
-              matchedLicenses.forEach(license => {
-                const li = document.createElement('li');
-                li.className = 'px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer';
-                li.textContent = license.title;
-                li.setAttribute('data-file', license.file);
-                li.onclick = () => selectLicense(license.file);
-                licenseList.appendChild(li);
-              });
-            }
+        const response = await fetch('/api/licenses.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            permissions: selectedPermissions,
+            limitations: selectedLimitations,
+          }),
+        });
 
-            loading.classList.add('hidden');
-            document.getElementById('license-selection').classList.remove('hidden');
-            document.getElementById('license-selection').classList.add('fade-in');
+        const matchedLicenses = await response.json();
+
+        const licenseList = document.getElementById('license-list');
+        licenseList.innerHTML = '';
+        if (matchedLicenses.length === 0) {
+          const li = document.createElement('li');
+          li.className = 'px-4 py-2';
+          li.textContent = 'No matching licenses found';
+          licenseList.appendChild(li);
+        } else {
+          matchedLicenses.forEach(license => {
+            const li = document.createElement('li');
+            li.className = 'px-4 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer';
+            li.textContent = license.title;
+            li.setAttribute('data-file', license.file);
+            li.onclick = () => selectLicense(license.file, name);
+            licenseList.appendChild(li);
           });
-        }, 500);
+        }
+
+        loading.classList.add('hidden');
+        document.getElementById('license-selection').classList.remove('hidden');
+        document.getElementById('license-selection').classList.add('fade-in');
       }
 
       function toggleDropdown() {
@@ -201,7 +188,7 @@ const conditions = [
         }
       }
 
-      async function selectLicense(file) {
+      async function selectLicense(file, name) {
         // Collapse the dropdown
         toggleDropdown();
 
@@ -210,7 +197,7 @@ const conditions = [
         const content = await response.text();
 
         // Parse the license metadata and body
-        const { metadata, body } = parseLicenseContent(content);
+        const { metadata, body } = parseLicenseContent(content, name);
 
         // Update the license text
         document.getElementById('license-text').textContent = body;
@@ -226,10 +213,15 @@ const conditions = [
         document.getElementById('license-content').classList.remove('hidden');
       }
 
-      function parseLicenseContent(content) {
+      function parseLicenseContent(content, name) {
         const sections = content.split('---').filter(section => section.trim() !== '');
         const metadataSection = sections[0].trim();
-        const body = sections[1].trim();
+        let body = sections[1].trim();
+
+        // Replace {name} and {year}
+        const currentYear = new Date().getFullYear();
+        body = body.replace(/{name}/g, name);
+        body = body.replace(/{year}/g, currentYear);
 
         const lines = metadataSection.split('\n');
         const metadata = {};

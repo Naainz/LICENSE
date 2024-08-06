@@ -55,12 +55,12 @@ export const GET: APIRoute = async ({ request }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const { permissions, limitations, conditions } = await request.json();
+  const { name, permissions, limitations } = await request.json();
 
   console.log('Received criteria:');
+  console.log('Name:', name);
   console.log('Permissions:', permissions);
   console.log('Limitations:', limitations);
-  console.log('Conditions:', conditions);
 
   const licensesDir = path.resolve('./src/db');
   const licenses = fs.readdirSync(licensesDir).filter(file => file.endsWith('.txt')).map(file => {
@@ -88,15 +88,13 @@ export const POST: APIRoute = async ({ request }) => {
   const matchedLicenses = licenses.filter(license => {
     const matchPermissions = arraysEqual(permissions, license.permissions || []);
     const matchLimitations = arraysEqual(limitations, license.limitations || []);
-    const matchConditions = arraysEqual(conditions, license.conditions || []);
 
-    const matches = matchPermissions && matchLimitations && matchConditions;
+    const matches = matchPermissions && matchLimitations;
 
     if (!matches) {
       console.log(`License "${license.title}" did not match:`);
       console.log('Permissions:', license.permissions);
       console.log('Limitations:', license.limitations);
-      console.log('Conditions:', license.conditions);
     }
 
     return matches;
@@ -104,7 +102,16 @@ export const POST: APIRoute = async ({ request }) => {
 
   console.log('Matched licenses:', matchedLicenses.length);
 
-  return new Response(JSON.stringify(matchedLicenses), {
+  // Replace {name} and {year} dynamically in the matched licenses
+  const currentYear = new Date().getFullYear();
+  const processedLicenses = matchedLicenses.map(license => {
+    const processedBody = license.body
+      .replace(/[fullname]/g, name)
+      .replace(/[year]/g, currentYear);
+    return { ...license, body: processedBody };
+  });
+
+  return new Response(JSON.stringify(processedLicenses), {
     headers: {
       'Content-Type': 'application/json',
     },
